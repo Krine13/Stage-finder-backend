@@ -4,7 +4,10 @@ const recruteurSchema=mongoose.Schema({
     nom:String,
     metier:String,
     annonce:String,
+    logo:String,
+    password:String,
+    token:String
 });
 
-const recruteur=mongoose.model('recruteurs,recruteurSchema');
-module.export=recruteur;
+const recruteur=mongoose.model('recruteur',recruteurSchema);
+module.exports=recruteur;
