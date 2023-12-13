@@ -1,24 +1,20 @@
 var express = require('express');
 var router = express.Router();
+
 const fetch = require('node-fetch');
 
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
 
-
-router.get('/filter',(req,res)=>{
-  const apiKey = process.env.NEWS_API_KEY;
-
- fetch(`https://api.coresignal.com/cdapi/v1/linkedin/job/search/filter?${apiKey}`)
+router.get('/', (req, res) => {
+  fetch(`https://newsapi.org/v2/top-headlines?sources=the-verge&apiKey=${NEWS_API_KEY}`)
     .then(response => response.json())
     .then(data => {
-      res.json({ data });
-    })
-    .catch(error => {
-      console.error('Erreur lors de la requête :', error);
-      res.status(500).json({ error: 'Erreur lors de la requête' });
+      if (data.status === 'ok') {
+        res.json({ articles: data.articles });
+      } else {
+        res.json({ articles: [] });
+      }
     });
 });
 
 module.exports = router;
-
-  
-
