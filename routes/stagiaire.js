@@ -4,45 +4,73 @@ require('../models/connection');
 const stagiaire = require('../models/stagiaire');
 const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
+const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
+const uniqid = require('uniqid');
+const cv = require('../models/cv');
+const { checkBody } = require('../modules/checkBody');
 
-router.post('/signup', async (req, res) => {
-  try {
-    const { email, nom, prenom, presentation, metier, portfolio, image, cv, password } = req.body;
-
-    // Vérification de l'existence du stagiaire
-    const existingStagiaire = await stagiaire.findOne({ email });
-    if (existingStagiaire) {
-      return res.status(400).json({ message: 'Stagiaire already exists' });
-    }
-
-    // Hash du mot de passe(x10)
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Création du compte stagiaire avec un token unique
-    const newStagiaire = new stagiaire({
-      email,
-      nom,
-      prenom,
-      presentation,
-      metier,
-      portfolio,
-      image,
-      cv,
-      password: hashedPassword,
-      token: uid2(32),
-    });
-
-    // Sauvegarde dans la base de données
-    await newStagiaire.save();
-
-    res.status(201).json({ message: 'Signup successful', token: newStagiaire.token });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+/*cloudinary.config({ 
+  cloud_name: 'dwambgkc1', 
+  api_key: '763933493646592 ', 
+  api_secret: 'Id0Mxh6Mroy64yWIBHd_WXycFpc' 
 });
+/*router.post('/upload', async (req, res) => {
+    const photoPath = `./tmp/${uniqid()}.jpg`;
+    const resultMove = await req.files.photoFromFront.mv(photoPath);
+   
+   
+    if (!resultMove) {
+    const resultCloudinary = await cloudinary.uploader.upload(photoPath);
+    fs.unlinkSync(photoPath);   
+      res.json({ "result": true,
+      url: resultCloudinary.secure_url });      
+    } else {
+      res.json({ result: false, error: resultMove });
+    }*/
+
+  router.post('/signup', (req, res) => {
+  if (!checkBody(req.body, ['nom', 'prenom', 'email', 'presentation','metier', 'password', ])) {
+    res.json({ result: false, error: 'Missing or empty fields' });
+    return;
+  }
+  
+  // Check if the user has not already been registered
+  stagiaire.findOne({ email: req.body.email }).then(data => {
+    if (data === null) {
+      const hash = bcrypt.hashSync(req.body.password, 10);
+
+      const newStagiaire = new stagiaire({
+        email: req.body.email,
+        nom: req.body.nom,
+        prenom: req.body.prenom,
+        metier: req.body.metier,
+        portfolio: req.body.portfolio,
+        presentation: req.body.presentation,
+        //image: req.body.image,
+        //cv: req.body.cv,
+        password: hash,
+        token: uid2(32), 
+      });
+    
+      newStagiaire.save().then(newDoc => {
+        res.json({ result: true, token: newDoc.token });
+      });
+    } else {
+      // User already exists in database
+      res.json({ result: false, error: 'Stagiaire déja existant' });
+    }
+  });
+});
+
+
+
+
 router.post('/signin', (req, res) => {
-  //const { email, password } = req.body;
+  if (!checkBody(req.body, ['email', 'password'])) {
+    res.json({ result: false, error: 'Champs vide' });
+    return;
+  }
 
   stagiaire.findOne({ email: req.body.email }).then(data => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
@@ -53,8 +81,9 @@ router.post('/signin', (req, res) => {
   });
 });
 
+
 router.delete('/delete', (req, res) => {
-  stagiaire.findOneAndDelete({ email: req.params.email }).then(data => {
+  stagiaire.findOneAndDelete({ email: req.body.email }).then(data => {
     if (data) {
       res.json({ result: true});
     } else {
@@ -62,11 +91,45 @@ router.delete('/delete', (req, res) => {
     }
   });
 });
+router.post('/cv', (req, res) => {
+  if (!checkBody(req.body, ['url' ])) {
+    res.json({ result: false, error: 'Missing or empty fields' });
+    return;
+  }
+
+  // Check if the user has not already been registered
+  cv.findOne({ url: req.body.url }).then(data => {
+    if (data === null) {
+
+      const newCv = new cv({
+        url: req.body.url,
+      });
+
+      newCv.save().then(newDoc => {
+        res.json({ result: true, token: newDoc.token });
+      });
+    } else {
+      // User already exists in database
+      res.json({ result: false, error: 'Cv déja existant' });
+    }
+  });
+});
+router.get("/cv", (req, res) => {
+  cv.find().populate('stagiaire').then(data => res.json({data}))
+})
 
 
-//router.get('/', (req, res) => {
-  //stagiaire.find().then((data)=> {res.json({data:data})})
-//});
+
+router.delete('/cv/delete', (req, res) => {
+ cv.findOneAndDelete({ url: req.body.url }).then(data => {
+    if (data) {
+      res.json({ result: true});
+    } else {
+      res.json({ result: false, error: 'Cv not found' });
+    }
+  });
+});
+
 module.exports = router;
 
 
