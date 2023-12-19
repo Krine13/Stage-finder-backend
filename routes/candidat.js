@@ -1,104 +1,94 @@
 var express = require('express');
 var router = express.Router();
 const candidat=require('../models/candidat');
-const {checkBody}=require('../Module/checkBody')
+const cv_candidat=require('../models/cv_candidat');
+const {checkBody}=require('../modules/checkBody')
 const bcrypt=require('bcrypt');
 const uid2=require('uid2')
 require('../models/connection');
-
 const fetch = require('node-fetch');
-//const cloudinary = require('cloudinary').v2;
+/*const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const uniqid = require('uniqid');
 const cv_candidat = require('../models/cv_candidat');
-
-/*cloudinary.config({ 
+cloudinary.config({ 
     cloud_name: 'dwambgkc1', 
     api_key: '763933493646592 ', 
     api_secret: 'Id0Mxh6Mroy64yWIBHd_WXycFpc' 
   });*/
-
 // recuperer les données d'inscription du recruteur//
-
-router.post('/signup', (req, res) => {
-
-  if (!checkBody(req.body, [ "email","adresse","secteur", "nom", "description", "remuneration",]
-   )) {
-       res.json ({result:false,error:"Il manque des elements pour enregister ton inscription"});
-      return;    
+router.post('/signup', async (req, res) => {
  
-     }
-     candidat.findOne({ email: req.body.email}).then(data => {
-      if (data === null) {
-      const hash=bcrypt.hashSync(req.body.password,10);
-   
-      
-        
-        
-        const newCandidat = new candidat({
-          nom:req.body.nom,
-          email:req.body.email,
-          adresse:req.body.adresse,
-          secteur:req.body.secteur,
-          photo:req.body.photo,
-          password:hash,
-          portfolio:req.body.portfolio,
-          token:uid2(32),
-        }); 
-       newCandidat.save().then(newDoc=>{
-        res.json({result:true,token:newDoc.token});
-       });
-      }else{
-        res.json({result:false,error:'candidat deja enregistre' });
-      }
-        
-       
-       });
-    })
-      
-      
-/*router.post('/upload', async (req, res) => {
-    const photoPath = `./tmp/${uniqid()}.jpg`;
+    /*const photoResult = await cloudinary.uploader.upload(req.body.photo);
+    const photoPath = ./tmp/${uniqid()}.jpg;
     const resultMove = await req.files.photoFromFront.mv(photoPath);
 
-
     if (!resultMove) {
-    const resultCloudinary = await cloudinary.uploader.upload(photoPath);
-    fs.unlinkSync(photoPath);
-      res.json({ "result": true,
-      url: resultCloudinary.secure_url });
-    } else {
-      res.json({ result: false, error: resultMove });
-    }*/
-  
-      
-      
-      
-   
-
-
-//recuperer les donnees de connection du recruteur//
-  
-router.post('/login', (req, res) => {
+      const resultCloudinary = await cloudinary.uploader.upload(photoPath);
+      fs.unlinkSync(photoPath);
+        res.json({ "result": true,
+        url: resultCloudinary.secure_url });
+      } else {
+        res.json({ result: false, error: resultMove });
+      }*/
+  if (!checkBody(req.body, [ "email","adresse","secteur", "nom", "description","password"]
+   )) {
+       res.json ({result:false,error:"Il manque des elements pour enregister ton inscription"});
+      return;
  
-  if (checkBody(req.body, ['name','email','password'])){
+     }
+ 
+ candidat.findOne({ email:req.body.email}).then(data => {
+  if (data === null) {
+    
+  const hash=bcrypt.hashSync(req.body.password,(10));
+
+   
+  
+    
+    
+    const newCandidat = new candidat({
+      nom:req.body.nom,
+      prenom:req.body.prenom,
+      email:req.body.email,
+      adresse:req.body.adresse,
+      secteur:req.body.secteur,
+      description:req.body.description,
+      photo:req.body.photo,
+      password:hash,
+      portfolio:req.body.portfolio,
+      token:uid2(32),
+    }); 
+   newCandidat.save().then(newDoc=>{
+    res.json({result:true,token:newDoc.token, message: 'Bienvenue'});
+   });
+  }else{
+    res.json({result:false,error:'candidat deja enregistre' });
+  }
+    
+   
+   });
+})
+ 
+//recuperer les donnees de connection du candidat//
+
+router.post('/signin', (req, res) => {
+ 
+  if (checkBody(req.body, ['nom','email','password'])){
    res.json ({result :true, message:"Ravis de vous revoir!"});
  } else {
     res.status(401).json ({error:'identifiant non reconnu'});
     return;
  }
-
  candidat.findOne({ email: req.body.email }).then(data => {
    if (data && bcrypt.compareSync(req.body.password, data.password)) {
      res.json({ result: true, token: data.token });
    } else {
      res.json({ result: false, error: 'utilisateur inconnu' });
-     
+
    }
  });
 });
-
-
 router.delete('/delete',(req,res)=>{
   candidat.findOneAndDelete({email:req.body.email}).then(data=>{
     if(data){
@@ -108,31 +98,25 @@ router.delete('/delete',(req,res)=>{
       }
     });
   })
-
-
-
-
-
 router.post('/cv_candidat',(req,res)=> {
+  // verification de la totalite des données du cv//
 
-  // verification de la totalite des données de l'annonce//
-  
-  if (!checkBody(req.body, ['url']
+  if (!checkBody(req.body, ['cv']
 )) {
     res.json ({result:false,error:"Il manque des elements pour enregister ton cv"});
-   return;    
-   
+   return;
+
 }
   cv_candidat.findOne({url:req.body.url})
    .then(data=>{
-    
+
    if(data===null){
-     
-    const newCv = new cv({
-    newCv:req.body.newCv,
+
+    const newCv_candidat = new cv_candidat({
+    newCv_candidat:req.body.newCv_candidat,
    });
-   newCv.save().then(newDoc => {
-    res.json({ result: true, token: newDoc.token })
+   newCv_candidat.save().then(newDoc => {
+    res.json({ result: true, token: newDoc.token, message: "Votre document a bien été enregistré sur votre profil"  })
   } );
  } else {
    res.json({result:false, error:'Deja enregistrer'})
@@ -141,7 +125,6 @@ router.post('/cv_candidat',(req,res)=> {
   res.json({result:false, error:'erreur lors de la recherche d/un cv existant'});
 });
 });
-
 router.delete('/cv_candidat/delete',(req,res)=>{
   cv_candidat.findOneAndDelete({url:req.body.url}).then(data=>{
     if(data){
@@ -151,7 +134,6 @@ router.delete('/cv_candidat/delete',(req,res)=>{
       }
     });
   })
-  
 
 
 
