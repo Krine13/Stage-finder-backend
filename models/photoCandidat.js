@@ -4,6 +4,6 @@ const photoCandidatSchema = mongoose.Schema({
     url: String,
     candidat:{ type: mongoose.Schema.Types.ObjectId, ref: 'candidat' },
 });
-const photo = mongoose.model('photoCandidat', photoCandidatSchema);
+const photoCandidat = mongoose.model('photoCandidat', photoCandidatSchema);
 
  module.exports = photoCandidat;

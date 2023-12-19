@@ -9,78 +9,82 @@ const { checkBody } = require('../modules/checkBody');
 //const fs = require('fs');
 //const uniqid = require('uniqid');
 const evenement = require('../models/evenement');
-const annonce = require('../models/annonce')
-//const image = require('../models/image');
+const Annonce = require('../models/annonce')
+const image = require('../models/image');
 
 /*cloudinary.config({ 
   cloud_name: 'dwambgkc1', 
   api_key: '763933493646592 ', 
   api_secret: 'Id0Mxh6Mroy64yWIBHd_WXycFpc' 
+});*/
+
+  router.post('/signup', async (req, res) => {
+    /*const photoResult = await cloudinary.uploader.upload(req.body.photo);
+  // const photoPath = `./tmp/${uniqid()}.jpg`;
+  // const resultMove = await req.files.photoFromFront.mv(photoPath);
+
+  // if (!resultMove) {
+  //   const resultCloudinary = await cloudinary.uploader.upload(photoPath);
+  //   fs.unlinkSync(photoPath);
+  //     res.json({ "result": true,
+  //     url: resultCloudinary.secure_url });
+  //   } else {
+  //     res.json({ result: false, error: resultMove });
+  //   }*/
+    try {
+        const { nom, prenom, email, password , fonction, entreprise, secteur, metier, annonce,} = req.body;
+
+        // Check if required fields are present
+        if (!checkBody(req.body, ['nom', 'prenom', 'email', 'password'])) {
+            return res.json({ result: false, error: 'Champs vide' });
+        }
+
+        // Check if the recruiter already exists
+        const existingRecruteur = await recruteur.findOne({ email });
+
+        if (!existingRecruteur) {
+            // Hash the password
+            const hashedPassword = bcrypt.hashSync(password, 10);
+
+            // Create a new recruiter
+            const newRecruteur = new recruteur({
+              nom,
+              prenom,
+              email,
+              password: hashedPassword,
+              token: uid2(32),
+              fonction, 
+              entreprise, 
+              secteur,
+              metier,
+              annonce
+              });
+
+            // Save the recruiter to the database
+            const savedRecruteur = await newRecruteur.save();
+
+            return res.json({ result: true, data: savedRecruteur });
+        } else {
+            return res.json({ result: false, error: 'Recruteur déjà existant' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ result: false, error: 'Erreur lors de la création du recruteur' });
+    }
 });
 
-router.post('/upload', async (req, res) => {
-  const photoPath = `./tmp/${uniqid()}.jpg`;
-  const resultMove = await req.files.photoFromFront.mv(photoPath);
- 
- 
-  if (!resultMove) {
-  const resultCloudinary = await cloudinary.uploader.upload(photoPath);
-  fs.unlinkSync(photoPath);   
-    res.json({ "result": true,
-    url: resultCloudinary.secure_url });      
-  } else {
-    res.json({ result: false, error: resultMove });
-  };
-  });*/
-  router.post('/signup', async (req, res) => {
-    try {
-      if (!checkBody(req.body, ['nom', 'prenom', 'email', 'entreprise', 'password', 'secteur'])) {
-        res.json({ result: false, error: 'Champs vide' });
-        return;
-      }
-  
-      // Vérifie si le compte existe déjà
-      const existingRecruteur = await recruteur.findOne({ email: req.body.email });
-  
-      if (!existingRecruteur) {
-        const hash = bcrypt.hashSync(req.body.password, 10);
-  
-        const newRecruteur = new recruteur({
-          nom: req.body.nom,
-          prenom: req.body.prenom,
-          email:req.body.email,
-          fonction: req.body.fonction,
-          
-          entreprise: req.body.entreprise,
-          secteur: req.body.secteur,
-          metier:req.body.metier,
-          annonce: req.body.annonce,
-          evenement: req.body.evenement,
-          image: req.body.image,
-          password: hash,
-          token: uid2(32),
-        });
-  
-        // Sauvegarder le recruteur
-        const recruteur = await newRecruteur.save();
-  
-        res.json({ result: true, data: newRecruteur });
-      } else {
-        res.json({ result: false, error: 'Recruteur déjà existant' });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ result: false, error: 'Erreur lors de la création du recruteur' });
-    }
-  })
+
+
 router.post('/signin', (req, res) => {
+  const { email, password } = req.body;
+
   if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Veuillez tout remplir' });
     return;
   }
 
-  recruteur.findOne({ email: req.body.email }).then(data => {
-    if (data && bcrypt.compareSync(req.body.password, data.password)) {
+  recruteur.findOne({ email: email }).then(data => {
+    if (data && bcrypt.compareSync(password, data.password)) {
       res.json({ result: true, token: data.token });
     } else {
       res.json({ result: false, error: 'Utilisateur inexistant ou mot de passe erroné' });
@@ -89,7 +93,7 @@ router.post('/signin', (req, res) => {
 });
 
 router.delete('/delete', (req, res) => {
-  recruteur.findOneAndDelete({ email: req.params.email }).then(data => {
+  recruteur.findOneAndDelete({ email: req.body.email }).then(data => {
     if (data) {
       res.json({ result: true});
     } else {
@@ -113,6 +117,7 @@ router.delete('/delete', (req, res) => {
         inscription : req.body.inscription,
         presentation : req.body.presentation,
         image : req.body.image,
+        recruteur: req.body.recruteur
         });
   
         newEvenement.save().then(newDoc => {
@@ -145,22 +150,18 @@ router.delete('/delete', (req, res) => {
       res.json({ result: false, error: 'Champs vide' });
       return;
     }
-  
-    
-    annonce.findOne({ nom: req.body.nom }).then(data => {
+    Annonce.findOne({ nom: req.body.nom }).then(data => {
       if (data === null) {
-        
-  
-        
-      const newAnnonce = new annonce({
+      const newAnnonce = new Annonce({
+
         date: req.body.date,
         nom: req.body.nom,
         metier: req.body.metier, 
         annonce: req.body.annonce,
         recruteur: req.body.recruteur
         });
-  
         newAnnonce.save().then(newDoc => {
+          console.log(newDoc);
           res.json({ result: true, data: newDoc});
         });
       } else {
@@ -170,11 +171,11 @@ router.delete('/delete', (req, res) => {
   });
   
   router.get("/annonce", (req, res) => {
-    annonce.find().populate('recruteur').then(data => res.json({data}))
+    Annonce.find().populate('recruteur').then(data => res.json({data}))
   })
 
-  router.delete('/annonce/delete', (req, res) => {
-    annonce.findOneAndDelete({ nom: req.body.nom }).then(data => {
+  router.delete('/annonce', (req, res) => {
+    Annonce.findOneAndDelete({ nom: req.body.nom }).then(data => {
       if (data) {
         res.json({ result: true});
       } else {

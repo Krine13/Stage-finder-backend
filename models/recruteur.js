@@ -1,5 +1,7 @@
 const mongoose=require('mongoose');
 
+
+
 const recruteurSchema=mongoose.Schema({
     email:String,
     nom:String,
@@ -16,3 +18,5 @@ const recruteurSchema=mongoose.Schema({
 
 const recruteur=mongoose.model('recruteur',recruteurSchema);
 module.exports=recruteur;
+
+

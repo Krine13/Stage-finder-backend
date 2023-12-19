@@ -3,11 +3,12 @@ var router = express.Router();
 const candidat=require('../models/candidat');
 const cv_candidat=require('../models/cv_candidat');
 const {checkBody}=require('../modules/checkBody')
+const cv_candidat=require('../models/cv_candidat');
+const {checkBody}=require('../modules/checkBody')
 const bcrypt=require('bcrypt');
 
 const uid2=require('uid2')
 require('../models/connection');
-
 const fetch = require('node-fetch');
 /*const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
@@ -19,7 +20,6 @@ cloudinary.config({
     api_key: '763933493646592 ', 
     api_secret: 'Id0Mxh6Mroy64yWIBHd_WXycFpc' 
   });*/
-
 // recuperer les données d'inscription du recruteur//
 
 router.post('/signup', async (req, res) => {
@@ -41,7 +41,7 @@ router.post('/signup', async (req, res) => {
   if (!checkBody(req.body, [ "email","adresse","secteur", "nom", "description","password"]
    )) {
        res.json ({result:false,error:"Il manque des elements pour enregister ton inscription"});
-      return;    
+      return;
  
      }
 
@@ -85,22 +85,21 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', (req, res) => {
  
   if (checkBody(req.body, ['nom','email','password'])){
+  if (checkBody(req.body, ['nom','email','password'])){
    res.json ({result :true, message:"Ravis de vous revoir!"});
  } else {
     res.status(401).json ({error:'identifiant non reconnu'});
     return;
  }
-
  candidat.findOne({ email: req.body.email }).then(data => {
    if (data && bcrypt.compareSync(req.body.password, data.password)) {
      res.json({ result: true, token: data.token });
    } else {
      res.json({ result: false, error: 'utilisateur inconnu' });
-     
+
    }
  });
-});
-
+}});
 
 router.delete('/delete',(req,res)=>{
   candidat.findOneAndDelete({email:req.body.email}).then(data=>{
@@ -111,11 +110,6 @@ router.delete('/delete',(req,res)=>{
       }
     });
   })
-
-
-
-
-
 router.post('/cv_candidat',(req,res)=> {
 
 
@@ -124,17 +118,19 @@ router.post('/cv_candidat',(req,res)=> {
   if (!checkBody(req.body, ['cv']
 )) {
     res.json ({result:false,error:"Il manque des elements pour enregister ton cv"});
-   return;    
-   
+   return;
+
 }
   cv_candidat.findOne({url:req.body.url})
    .then(data=>{
-    
+
    if(data===null){
      
     const newCv_candidat = new cv_candidat({
     newCv_candidat:req.body.newCv_candidat,
    });
+   newCv_candidat.save().then(newDoc => {
+    res.json({ result: true, token: newDoc.token, message: "Votre document a bien été enregistré sur votre profil"  })})
    newCv_candidat.save().then(newDoc => {
     res.json({ result: true, token: newDoc.token, message: "Votre document a bien été enregistré sur votre profil"  })
   } );
@@ -145,7 +141,6 @@ router.post('/cv_candidat',(req,res)=> {
   res.json({result:false, error:'erreur lors de la recherche d/un cv existant'});
 });
 });
-
 router.delete('/cv_candidat/delete',(req,res)=>{
   cv_candidat.findOneAndDelete({url:req.body.url}).then(data=>{
     if(data){
@@ -155,7 +150,6 @@ router.delete('/cv_candidat/delete',(req,res)=>{
       }
     });
   })
-  
 
 
 
