@@ -2,9 +2,7 @@ var express = require('express');
 var router = express.Router();
 const candidat=require('../models/candidat');
 const cv_candidat=require('../models/cv_candidat');
-const {checkBody}=require('../modules/checkBody')
-const cv_candidat=require('../models/cv_candidat');
-const {checkBody}=require('../modules/checkBody')
+const {checkBody}=require('../modules/checkBody');
 const bcrypt=require('bcrypt');
 
 const uid2=require('uid2')
@@ -84,7 +82,7 @@ router.post('/signup', async (req, res) => {
   
 router.post('/signin', (req, res) => {
  
-  if (checkBody(req.body, ['nom','email','password'])){
+  
   if (checkBody(req.body, ['nom','email','password'])){
    res.json ({result :true, message:"Ravis de vous revoir!"});
  } else {
@@ -99,7 +97,7 @@ router.post('/signin', (req, res) => {
 
    }
  });
-}});
+});
 
 router.delete('/delete',(req,res)=>{
   candidat.findOneAndDelete({email:req.body.email}).then(data=>{
@@ -131,9 +129,7 @@ router.post('/cv_candidat',(req,res)=> {
    });
    newCv_candidat.save().then(newDoc => {
     res.json({ result: true, token: newDoc.token, message: "Votre document a bien été enregistré sur votre profil"  })})
-   newCv_candidat.save().then(newDoc => {
-    res.json({ result: true, token: newDoc.token, message: "Votre document a bien été enregistré sur votre profil"  })
-  } );
+   
  } else {
    res.json({result:false, error:'Deja enregistrer'})
  }
