@@ -48,19 +48,21 @@ router.post('/upload', async (req, res) => {
         const newRecruteur = new recruteur({
           nom: req.body.nom,
           prenom: req.body.prenom,
-          fonction: req.body.function,
-          email: req.body.email,
+          email:req.body.email,
+          fonction: req.body.fonction,
+          
           entreprise: req.body.entreprise,
-        //  secteur: req.body.secteur,
-         // annonce: req.body.annonce,
-         // evenement: req.body.evenement,
+          secteur: req.body.secteur,
+          metier:req.body.metier,
+          annonce: req.body.annonce,
+          evenement: req.body.evenement,
           image: req.body.image,
           password: hash,
           token: uid2(32),
         });
   
         // Sauvegarder le recruteur
-        const savedRecruteur = await newRecruteur.save();
+        const recruteur = await newRecruteur.save();
   
         res.json({ result: true, data: newRecruteur });
       } else {
@@ -139,7 +141,7 @@ router.delete('/delete', (req, res) => {
   });
 
   router.post('/annonce', (req, res) => {
-    if (!checkBody(req.body, ['date','nom','presentation'])) {
+    if (!checkBody(req.body, ['date','nom','annonce'])) {
       res.json({ result: false, error: 'Champs vide' });
       return;
     }

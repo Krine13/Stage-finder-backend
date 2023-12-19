@@ -5,12 +5,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 require('dotenv').config();
-require('./models/connection');
+
 var indexRouter = require('./routes/index');
 //var usersRouter = require('./routes/users');
 const recruteurRouter = require('./routes/recruteur');
 const candidatRouter =require('./routes/candidat'); 
-const annonceRouter=require('./routes/annonce');
+//const annonceRouter=require('./routes/annonce');
 
 var app = express();
 const cors=require('cors');
@@ -25,7 +25,7 @@ app.use('/', indexRouter);
 //app.use('/users', usersRouter);
 app.use('/recruteur', recruteurRouter);
 app.use('/candidat', candidatRouter);
-app.use('/annonce',annonceRouter);
+//app.use('/annonce',annonceRouter);
 
 
 module.exports = app;

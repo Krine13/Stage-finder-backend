@@ -1,10 +1,13 @@
 const mongoose=require('mongoose');
 const annonceSchema=mongoose.Schema({
-    
-    title:String,
-    description:String,
+    date: Date,
+    nom: String,
+    metier: String,
+    annonce: String,
+    recruteur: { type: mongoose.Schema.Types.ObjectId, ref: 'recruteur' },
 
 });
 
-const annonce=mongoose.model('annonce',annonceSchema);
-module.exports=annonce;
+const Annonce=mongoose.model('annonces',annonceSchema);
+
+module.exports=Annonce;
