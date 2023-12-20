@@ -36,7 +36,7 @@ router.post('/signup', async (req, res) => {
         res.json({ result: false, error: resultMove });
       }*/
 
-  if (!checkBody(req.body, [ "email","adresse","secteur", "nom", "description","password"]
+  if (!checkBody(req.body, [ "prenom","nom","email","password"]
    )) {
        res.json ({result:false,error:"Il manque des elements pour enregister ton inscription"});
       return;
