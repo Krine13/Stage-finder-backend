@@ -35,7 +35,7 @@ const image = require('../models/image');
         const { nom, prenom, email, password , fonction, entreprise, secteur, metier, annonce,} = req.body;
 
         // Check if required fields are present
-        if (!checkBody(req.body, ['nom', 'prenom', 'email', 'password'])) {
+        if (!checkBody(req.body, ['nom', 'prenom', 'email', 'password','fonction' ,'entreprise',])) {
             return res.json({ result: false, error: 'Champs vide' });
         }
 
