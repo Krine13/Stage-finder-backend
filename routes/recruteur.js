@@ -11,14 +11,14 @@ const { checkBody } = require('../modules/checkBody');
 const evenement = require('../models/evenement');
 const Annonce = require('../models/annonce')
 const image = require('../models/image');
-
+const candidat = require('../models/candidat');
 /*cloudinary.config({ 
   cloud_name: 'dwambgkc1', 
   api_key: '763933493646592 ', 
   api_secret: 'Id0Mxh6Mroy64yWIBHd_WXycFpc' 
 });*/
 
-  router.post('/signup', async (req, res) => {
+router.post('/signup', async (req, res) => {
     /*const photoResult = await cloudinary.uploader.upload(req.body.photo);
   // const photoPath = `./tmp/${uniqid()}.jpg`;
   // const resultMove = await req.files.photoFromFront.mv(photoPath);
@@ -32,10 +32,10 @@ const image = require('../models/image');
   //     res.json({ result: false, error: resultMove });
   //   }*/
     try {
-        const { nom, prenom, email, password , fonction, entreprise, secteur, metier, annonce,} = req.body;
+        const { lastName, firstName, email, password , fonction, company, secteur, metier, annonce,} = req.body;
 
-        // Check if required fields are present
-        if (!checkBody(req.body, ['nom', 'prenom', 'email', 'password','fonction' ,'entreprise',])) {
+        // // Check if required fields are present
+         if (!checkBody(req.body, ['lastName', 'firstName', 'email', 'password','fonction' ,'company',])) {
             return res.json({ result: false, error: 'Champs vide' });
         }
 
@@ -48,16 +48,16 @@ const image = require('../models/image');
 
             // Create a new recruiter
             const newRecruteur = new recruteur({
-              nom,
-              prenom,
+              lastName,
+              firstName,
               email,
               password: hashedPassword,
               token: uid2(32),
               fonction, 
-              entreprise, 
+              company, 
               secteur,
               metier,
-              annonce
+              annonce,
               });
 
             // Save the recruiter to the database
@@ -72,8 +72,6 @@ const image = require('../models/image');
         return res.status(500).json({ result: false, error: 'Erreur lors de la création du recruteur' });
     }
 });
-
-
 
 router.post('/signin', (req, res) => {
   const { email, password } = req.body;
@@ -102,36 +100,34 @@ router.delete('/delete', (req, res) => {
   });
 });
 
-  router.post('/evenement', (req, res) => {
-    if (!checkBody(req.body, ['date','nom','presentation'])) {
-      res.json({ result: false, error: 'Champs vide' });
-      return;
-    }
-    // Verifie si evenement existe déja
-    recruteur.findOne({ nom: req.body.nom }).then(data => {
-      if (data === null) { 
-      
-      const newEvenement = new evenement({
-        date :req.body.date,
-        nom : req.body.nom,
-        inscription : req.body.inscription,
-        presentation : req.body.presentation,
-        image : req.body.image,
-        recruteur: req.body.recruteur
-        });
-  
-        newEvenement.save().then(newDoc => {
-          res.json({ result: true, token: newDoc.token });
-        });
-      } else {
-        res.json({ result: false, error: 'Evenement déja existant' });
-      }
-    });
-  });
+router.post('/evenement', (req, res) => {
+  if (!checkBody(req.body, ['date','nom','presentation'])) {
+    res.json({ result: false, error: 'Champs vide' });
+    return;
+  }
+  // Verifie si evenement existe déja
+  recruteur.findOne({ nom: req.body.nom }).then(data => {
+    if (data === null) { 
+    
+    const newEvenement = new evenement({
+      date :req.body.date,
+      nom : req.body.nom,
+      inscription : req.body.inscription,
+      presentation : req.body.presentation,
+      image : req.body.image,
+      recruteur: req.body.recruteur
+      });
 
-  router.get("/evenement", (req, res) => {
-    evenement.find().populate('recruteur').then(data => res.json({data}))
-  })
+      newEvenement.save().then(newDoc => {
+        res.json({ result: true, token: newDoc.token });
+      });
+    } else {
+      res.json({ result: false, error: 'Evenement déja existant' });
+    }
+  });
+});
+
+  
 
   
   
@@ -169,10 +165,13 @@ router.delete('/delete', (req, res) => {
       }
     });
   });
-  
-  router.get("/annonce", (req, res) => {
-    Annonce.find().populate('recruteur').then(data => res.json({data}))
-  })
+
+  router.post("/annonce/quoi", (req, res) => {
+    const metier = req.body.metier;
+
+    console.log('from backend', metier);
+    Annonce.find({ metier: metier }).populate('recruteur').then(data => res.json({ annonce:data }));
+  });
 
   router.delete('/annonce', (req, res) => {
     Annonce.findOneAndDelete({ nom: req.body.nom }).then(data => {
@@ -184,4 +183,17 @@ router.delete('/delete', (req, res) => {
     });
   });
 
+  router.get('/allCandidats', async (req, res) => {
+    try {
+      // Utilisez votre modèle de candidat pour récupérer tous les profils
+      const candidats = await candidat.find({});
+  
+      // Renvoyez la liste complète des candidats en tant que réponse
+      res.json({ success: true, data: candidats });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des candidats :', error);
+      res.status(500).json({ success: false, error: 'Erreur lors de la récupération des candidats.' });
+    }
+  });
+  
 module.exports = router;

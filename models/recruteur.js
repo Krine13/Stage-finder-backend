@@ -4,10 +4,10 @@ const mongoose=require('mongoose');
 
 const recruteurSchema=mongoose.Schema({
     email:String,
-    nom:String,
-    prenom:String,
+    lastName:String,
+    firsName:String,
     secteur:String,
-    entreprise:String,
+    company:String,
     fonction:String,
     metier:String,
     annonce:String,
