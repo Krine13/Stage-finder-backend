@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const candidat=require('../models/candidat');
+const candidat = require('../models/candidat');
 const cv_candidat=require('../models/cv_candidat');
 const {checkBody}=require('../modules/checkBody');
 const bcrypt=require('bcrypt');
@@ -36,7 +36,7 @@ router.post('/signup', async (req, res) => {
         res.json({ result: false, error: resultMove });
       }*/
 
-  if (!checkBody(req.body, [ "prenom","nom","email","password"]
+  if (!checkBody(req.body, [ "firstName","lastName","email","password"]
    )) {
        res.json ({result:false,error:"Il manque des elements pour enregister ton inscription"});
       return;
@@ -54,10 +54,10 @@ router.post('/signup', async (req, res) => {
         
         
         const newCandidat = new candidat({
-          nom:req.body.nom,
-          prenom:req.body.prenom,
+          lastName:req.body.lastName,
+          firstName:req.body.firstName,
           email:req.body.email,
-          adresse:req.body.adresse,
+          address:req.body.address,
           secteur:req.body.secteur,
           description:req.body.description,
           photo:req.body.photo,
@@ -83,7 +83,7 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', (req, res) => {
  
   
-  if (checkBody(req.body, ['nom','email','password'])){
+  if (checkBody(req.body, ['email','password'])){
    res.json ({result :true, message:"Ravis de vous revoir!"});
  } else {
     res.status(401).json ({error:'identifiant non reconnu'});
@@ -110,14 +110,12 @@ router.delete('/delete',(req,res)=>{
   })
 router.post('/cv_candidat',(req,res)=> {
 
-
   // verification de la totalite des données du cv//
-  
+
   if (!checkBody(req.body, ['cv']
 )) {
     res.json ({result:false,error:"Il manque des elements pour enregister ton cv"});
    return;
-
 }
   cv_candidat.findOne({url:req.body.url})
    .then(data=>{
